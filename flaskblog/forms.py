@@ -12,19 +12,19 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
     password = PasswordField('Пароль', validators=[DataRequired()])
-    confirm_password = PasswordField('Подтвердите пароль',
+    confirm_password = PasswordField('Подтверждение пароля',
                                      validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Зарегистрироваться')
 
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
         if user:
-            raise ValidationError('Данное имя уже используется. Пожалуйста, введите другое')
+            raise ValidationError('Это имя уже занято. Пожалуйста, введите другое')
 
     def validate_email(self, email):
         user = User.query.filter_by(email=email.data).first()
         if user:
-            raise ValidationError('Данный Email уже используется. Пожалуйста, введите другой')
+            raise ValidationError('Этот email уже занят. Пожалуйста, введите другой')
 
 
 class LoginForm(FlaskForm):
@@ -36,24 +36,24 @@ class LoginForm(FlaskForm):
 
 
 class UpdateAccountForm(FlaskForm):
-    username = StringField('Имя',
+    username = StringField('Username',
                            validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
-    picture = FileField('Обновить фотографию профиля', validators=[FileAllowed(['jpg', 'png'])])
+    picture = FileField('Обновить фото профиля', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Обновить')
 
     def validate_username(self, username):
         if username.data != current_user.username:
             user = User.query.filter_by(username=username.data).first()
             if user:
-                raise ValidationError('Данное имя уже используется. Пожалуйста, введите другое')
+                raise ValidationError('Это имя уже занято. Пожалуйста, введите другое')
 
     def validate_email(self, email):
         if email.data != current_user.email:
             user = User.query.filter_by(email=email.data).first()
             if user:
-                raise ValidationError('Данный Email уже используется. Пожалуйста, введите другой')
+                raise ValidationError('Этот email уже занят. Пожалуйста, введите другой')
 
 
 class PostForm(FlaskForm):

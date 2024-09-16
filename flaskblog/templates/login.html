@@ -4,7 +4,7 @@
         <form method="POST" action="">
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
-                <legend class="border-bottom mb-4">Вход</legend>
+                <legend class="border-bottom mb-4">Авторизация</legend>
                 <div class="form-group">
                     {{ form.email.label(class="form-control-label") }}
                     {% if form.email.errors %}
@@ -46,7 +46,7 @@
     </div>
     <div class="border-top pt-3">
         <small class="text-muted">
-            Нету аккаунта? <a class="ml-2" href="{{ url_for('register') }}">Зарегистрируйтесь!</a>
+            Нету аккаунта? <a class="ml-2" href="{{ url_for('register') }}">Регистрация</a>
         </small>
     </div>
 {% endblock content %}
