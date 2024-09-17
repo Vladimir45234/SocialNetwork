@@ -59,4 +59,5 @@ class UpdateAccountForm(FlaskForm):
 class PostForm(FlaskForm):
     title = StringField('Заголовок', validators=[DataRequired()])
     content = TextAreaField('Содержание', validators=[DataRequired()])
+    postpicture = FileField('Добавить фотографию', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Выложить')

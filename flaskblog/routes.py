@@ -7,6 +7,8 @@ from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm, Post
 from flaskblog.models import User, Post
 from flask_login import login_user, current_user, logout_user, login_required
 
+UPLOAD_FOLDER = '/path/to/the/uploads'
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 @app.route("/")
 @app.route("/home")
@@ -66,6 +68,19 @@ def save_picture(form_picture):
 
     return picture_fn
 
+def save_picture_post(form_postpicture):
+    random_hex = secrets.token_hex(8)
+    _, f_ext = os.path.splitext(form_postpicture.filename)
+    picture_fn = random_hex + f_ext
+    picture_path = os.path.join(app.root_path, 'static/post_pics', picture_fn)
+
+    output_size = (500, 500)
+    i = Image.open(form_postpicture)
+    i.thumbnail(output_size)
+    i.save(picture_path)
+
+    return picture_fn
+
 
 @app.route("/account", methods=['GET', 'POST'])
 @login_required
@@ -93,13 +108,16 @@ def account():
 def new_post():
     form = PostForm()
     if form.validate_on_submit():
-        post = Post(title=form.title.data, content=form.content.data, author=current_user)
+        if form.postpicture.data:
+            post_image = save_picture_post(form.postpicture.data)
+        post = Post(title=form.title.data, content=form.content.data, author=current_user, post_image=post_image)
         db.session.add(post)
         db.session.commit()
         flash('Ваш пост был создан!', 'success')
         return redirect(url_for('home'))
+    post_file = url_for('static', filename='post_pics/' + Post.post_image)
     return render_template('create_post.html', title='New Post',
-                           form=form, legend='New Post')
+                           form=form, legend='New Post', post_file=post_file)
 
 
 @app.route("/post/<int:post_id>")

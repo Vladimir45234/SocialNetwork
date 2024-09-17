@@ -15,6 +15,9 @@
       </div>
       <h2 class="article-title">{{ post.title }}</h2>
       <p class="article-content">{{ post.content }}</p>
+      <div class="article-metadata">
+        <img class="" src="{{ url_for('static', filename='post_pics/' + post.post_image) }}">
+    </div>
     </div>
   </article>
   <!-- Modal -->
