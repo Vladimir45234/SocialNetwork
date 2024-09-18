@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from flask_login import current_user
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
-from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
+from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, InputRequired
 from flaskblog.models import User
 
 
@@ -34,6 +34,9 @@ class LoginForm(FlaskForm):
     remember = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
 
+class AddCommentForm(FlaskForm):
+    body = StringField('Ваш комментарий', validators=[InputRequired()])
+    submit = SubmitField('Опубликовать')
 
 class UpdateAccountForm(FlaskForm):
     username = StringField('Username',
@@ -61,3 +64,14 @@ class PostForm(FlaskForm):
     content = TextAreaField('Содержание', validators=[DataRequired()])
     postpicture = FileField('Добавить фотографию', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Выложить')
+
+class UpdatePostForm(FlaskForm):
+    title = StringField('Заголовок', validators=[DataRequired()])
+    content = TextAreaField('Содержание', validators=[DataRequired()])
+    postpicture = FileField('Обновить фотографию', validators=[FileAllowed(['jpg', 'png'])])
+    submit = SubmitField('Выложить')
+
+
+class UpdateCommentForm(FlaskForm):
+    body = StringField('Заголовок', validators=[InputRequired()])
+    submit = SubmitField('Опубликовать')

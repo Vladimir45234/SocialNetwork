@@ -26,10 +26,10 @@ h1, h2, h3, h4, h5, h6 {
 
 .content-section {
   background: #ffffff;
-  padding: 10px 20px;
+  padding: 10px 20px 2px;
   border: 1px solid #dddddd;
-  border-radius: 3px;
-  margin-bottom: 20px;
+  border-radius: 10px;
+  margin-bottom: 40px;
 }
 
 .article-title {
@@ -53,7 +53,7 @@ a.article-title:hover {
 
 .article-metadata {
   padding-bottom: 1px;
-  margin-bottom: 4px;
+  margin-bottom: 20px;
   border-bottom: 1px solid #e3e3e3
 }
 
@@ -77,4 +77,66 @@ a.article-title:hover {
 
 .account-heading {
   font-size: 2.5rem;
+}
+
+.single_comment{
+  background: #ffffff;
+  padding: 10px 20px 2px;
+  border: 1px solid #dddddd;
+  border-radius: 10px;
+  margin-bottom: 40px;
+}
+
+
+.head_comment{
+  display:flex;
+  justify-content: space-between;
+}
+
+
+.left_comment_side{
+  margin-left: 10px;
+  font-size: 15px;
+}
+
+
+.right_comment_side{
+  margin-right: 10px;
+  font-size: 12px;
+
+}
+
+
+.body_comment{
+  text-align:left;
+  margin: 10px 40px;
+  padding: 10px 40px;
+}
+
+
+.stat_comment{
+  display:flex;
+  justify-content: space-between;
+}
+
+
+.left_stat_side{
+  margin-left:20px;
+  font-size: 15px;
+
+}
+
+.right_stat_side{
+  margin-right:40px;
+  font-size: 15px;
+}
+
+.left_side_stat_post{
+  margin-left:20px;
+  font-size: 20px;
+}
+.right_side_stat_post{
+  margin-left: 250px;
+  font-size: 20px;
+  cursor: pointer;
 }

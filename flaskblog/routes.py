@@ -1,14 +1,10 @@
-import os
-import secrets
-from PIL import Image
 from flask import render_template, url_for, flash, redirect, request, abort
 from flaskblog import app, db, bcrypt
-from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm
-from flaskblog.models import User, Post
+from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, UpdatePostForm, AddCommentForm, UpdateCommentForm
+from flaskblog.models import User, Post, Comment
 from flask_login import login_user, current_user, logout_user, login_required
+from flaskblog.utils import save_picture, save_picture_post
 
-UPLOAD_FOLDER = '/path/to/the/uploads'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 
 @app.route("/")
 @app.route("/home")
@@ -30,7 +26,7 @@ def register():
         db.session.commit()
         flash('Ваш аккаунт был создан. Пожалуйста, войдите', 'success')
         return redirect(url_for('login'))
-    return render_template('register.html', title='Register', form=form)
+    return render_template('register.html', title='Регисттрация', form=form)
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -46,40 +42,13 @@ def login():
             return redirect(next_page) if next_page else redirect(url_for('home'))
         else:
             flash('Войти не удалось. Пожалуйста, проверьте адрес электронной почты и пароль', 'danger')
-    return render_template('login.html', title='Login', form=form)
+    return render_template('login.html', title='Авторизация', form=form)
 
 
 @app.route("/logout")
 def logout():
     logout_user()
     return redirect(url_for('home'))
-
-
-def save_picture(form_picture):
-    random_hex = secrets.token_hex(8)
-    _, f_ext = os.path.splitext(form_picture.filename)
-    picture_fn = random_hex + f_ext
-    picture_path = os.path.join(app.root_path, 'static/profile_pics', picture_fn)
-
-    output_size = (125, 125)
-    i = Image.open(form_picture)
-    i.thumbnail(output_size)
-    i.save(picture_path)
-
-    return picture_fn
-
-def save_picture_post(form_postpicture):
-    random_hex = secrets.token_hex(8)
-    _, f_ext = os.path.splitext(form_postpicture.filename)
-    picture_fn = random_hex + f_ext
-    picture_path = os.path.join(app.root_path, 'static/post_pics', picture_fn)
-
-    output_size = (500, 500)
-    i = Image.open(form_postpicture)
-    i.thumbnail(output_size)
-    i.save(picture_path)
-
-    return picture_fn
 
 
 @app.route("/account", methods=['GET', 'POST'])
@@ -99,14 +68,25 @@ def account():
         form.username.data = current_user.username
         form.email.data = current_user.email
     image_file = url_for('static', filename='profile_pics/' + current_user.image_file)
-    return render_template('account.html', title='Account',
+    return render_template('account.html', title='Аккаунт',
                            image_file=image_file, form=form)
+
+
+@app.route("/user/<string:username>")
+def user_posts(username):
+    page = request.args.get('page', 1, type=int)
+    user = User.query.filter_by(username=username).first_or_404()
+    posts = Post.query.filter_by(author=user)\
+        .order_by(Post.date_posted.desc())\
+        .paginate(page=page, per_page=5)
+    return render_template('user_posts.html', posts=posts, user=user)
 
 
 @app.route("/post/new", methods=['GET', 'POST'])
 @login_required
 def new_post():
     form = PostForm()
+    comment_form = AddCommentForm()
     if form.validate_on_submit():
         if form.postpicture.data:
             post_image = save_picture_post(form.postpicture.data)
@@ -116,14 +96,26 @@ def new_post():
         flash('Ваш пост был создан!', 'success')
         return redirect(url_for('home'))
     post_file = url_for('static', filename='post_pics/' + Post.post_image)
-    return render_template('create_post.html', title='New Post',
-                           form=form, legend='New Post', post_file=post_file)
+    return render_template('create_post.html', title='Новый пост',
+                           form=form, legend='Новый пост', post_file=post_file, comment_form=comment_form,)
 
 
-@app.route("/post/<int:post_id>")
+@app.route("/post/<int:post_id>", methods=['GET', 'POST'])
 def post(post_id):
     post = Post.query.get_or_404(post_id)
-    return render_template('post.html', title=post.title, post=post)
+    comment = Comment.query.filter_by(post_id=post.id).order_by(db.desc(Comment.date_comment)).all()
+    post.views += 1
+    db.session.commit()
+    commentform = AddCommentForm()
+    if request.method == 'POST':
+        if commentform.validate_on_submit():
+            username = current_user.username
+            comment = Comment(username=username, body=commentform.body.data, post_id=post.id)
+            db.session.add(comment)
+            db.session.commit()
+            flash('Комментарий к посту был добавлен', "success")
+            return redirect(url_for('post', post_id=post.id))
+    return render_template('post.html', title=post.title, post=post, post_id=post.id, commentform=commentform, comment=comment)
 
 
 @app.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
@@ -132,18 +124,21 @@ def update_post(post_id):
     post = Post.query.get_or_404(post_id)
     if post.author != current_user:
         abort(403)
-    form = PostForm()
+    form = UpdatePostForm()
+    if request.method == 'GET':
+        form.title.data = post.title
+        form.content.data = post.content
     if form.validate_on_submit():
         post.title = form.title.data
         post.content = form.content.data
+        if form.postpicture.data:
+            post.post_image = save_picture_post(form.postpicture.data)
         db.session.commit()
-        flash('Your post has been updated!', 'success')
+        flash('Ваш пост был обновлён!', 'success')
         return redirect(url_for('post', post_id=post.id))
-    elif request.method == 'GET':
-        form.title.data = post.title
-        form.content.data = post.content
-    return render_template('create_post.html', title='Update Post',
-                           form=form, legend='Update Post')
+
+    return render_template('create_post.html', title='Обновить пост',
+                           form=form, legend='Обновить пост')
 
 
 @app.route("/post/<int:post_id>/delete", methods=['POST'])
@@ -157,12 +152,25 @@ def delete_post(post_id):
     flash('Ваш пост был удалён!', 'success')
     return redirect(url_for('home'))
 
+@app.route('/comment/<int:comment_id>/update', methods=['GET', 'POST'])
+@login_required
+def update_comment(comment_id):
+    comment = Comment.query.get_or_404(comment_id)
+    updatecommentform = UpdateCommentForm()
+    if request.method == 'GET':
+        updatecommentform.body.data = comment.body
 
-@app.route("/user/<string:username>")
-def user_posts(username):
-    page = request.args.get('page', 1, type=int)
-    user = User.query.filter_by(username=username).first_or_404()
-    posts = Post.query.filter_by(author=user)\
-        .order_by(Post.date_posted.desc())\
-        .paginate(page=page, per_page=5)
-    return render_template('user_posts.html', posts=posts, user=user)
+    if updatecommentform.validate_on_submit():
+        comment.body = updatecommentform.body.data
+        db.session.commit()
+        return redirect(url_for('post', post_id=comment.post_id))
+    return render_template('update_comment.html', updatecommentform=updatecommentform)
+
+@app.route('/comment/<int:comment_id>/delete')
+@login_required
+def delete_comment(comment_id):
+    single_comment = Comment.query.get_or_404(comment_id)
+    db.session.delete(single_comment)
+    db.session.commit()
+    flash('Комментарий был удалён', 'success')
+    return redirect(url_for('post', post_id=single_comment.post_id))

@@ -1,7 +1,6 @@
 from datetime import datetime
-from flaskblog import db, login_manager
+from flaskblog import db, login_manager, app
 from flask_login import UserMixin
-
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -21,12 +20,29 @@ class User(db.Model, UserMixin):
 
 
 class Post(db.Model):
+
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     content = db.Column(db.Text, nullable=False)
     post_image = db.Column(db.String(30), nullable=False, default='default.jpg')
+    
+    views = db.Column(db.Integer, default=0)
+    likes = db.Column(db.Integer, default=0)
+
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    comments = db.relationship('Comment', backref='comment_post', lazy=True, cascade='all, delete-orphan')
+
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
     def __repr__(self):
-        return f"Post('{self.title}', '{self.date_posted}', '{self.image_file}')"
+        return f"Post({self.id} ,{self.title}, {self.date_posted.strftime("%d.%m.%Y-%H.%M")}, {self.post_image}, {self.user_id})"
+    
+class Comment(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20))
+    body = db.Column(db.Text(200), nullable=False)
+    date_comment = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    post_id = db.Column(db.Integer, db.ForeignKey('post.id', ondelete='CASCADE'), nullable=False)
+
+    def __repr__(self):
+        return f'Comment({self.body}, {self.date_comment.strftime("%d.%m.%Y-%H.%M")}, {self.post_id})'
