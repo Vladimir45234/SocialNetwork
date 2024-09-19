@@ -48,6 +48,10 @@
     </div>
     
         </div>
+
+
+          
+    {% if current_user.is_authenticated %}
     <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-as-keyboard="false" tabindex="-1"...></div>
 
 
@@ -78,13 +82,16 @@
 
           {{ commentform.submit(class="btn btn-outline-info") }}
         </div>
+      {% endif %}
         <div class="comment_side">
           {% for i in comment %}
 <div class="single_comment">
   <div class="head_comment">
-    <div class="left_comment_side">
-      <img class="rounded-circle article-img" src="{{ url_for('static', filename='profile_pics/' + post.author.image_file) }}">
-      {{ i.username }}
+
+      <div class="left_comment_side">
+        <a href="{{ url_for('.user_posts', username=i.username)}}">{{ i.username }}</a>
+    
+
     </div>
     <div class="right_comment_side">{{ i.date_comment.strftime("%d.%m.%Y-%H.%M") }}</div>
   </div>
@@ -92,9 +99,14 @@
   <div class="body_comment">
     {{ i.body }}
   </div>
+  {% if post.author == current_user or current_user.username == i.username %}
+  <div>
+    <a class="btn btn-secondary btn-sm mt-1 mb-1" href="{{ url_for('update_comment', comment_id=i.id) }}">Обновить</a>
+    <a href="{{ url_for( 'delete_comment', comment_id=i.id) }}" class="btn btn-danger btn-sm m-1" >Удалить</a>
+  </div>
+{% endif %}
 
-  <a href="{{ url_for('update_comment', comment_id=i.id)}}"><p>Обновить комментарий</p></a>
-  <a href="{{ url_for('delete_comment', comment_id=i.id)}}"><p>Удалить комментарий</p></a>
+
 </div>
           {% endfor %}
 </div>      

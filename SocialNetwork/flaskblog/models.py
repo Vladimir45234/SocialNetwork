@@ -35,7 +35,7 @@ class Post(db.Model):
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
     def __repr__(self):
-        return f"Post({self.id} ,{self.title}, {self.date_posted.strftime("%d.%m.%Y-%H.%M")}, {self.post_image}, {self.user_id})"
+        return f'Post({self.id} ,{self.title}, {self.date_posted.strftime("%d.%m.%Y-%H.%M")}, {self.post_image}, {self.user_id})'
     
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
