@@ -1,6 +1,6 @@
 import os
 import secrets
-from PIL import Image
+from PIL import Image, ImageOps
 from flaskblog import app
 
 def save_picture(form_picture):
@@ -17,15 +17,13 @@ def save_picture(form_picture):
     return picture_fn
 
 def save_picture_post(form_postpicture):
-    random_hex = secrets.token_hex(8)
+    random_hex = secrets.token_hex(16)
     _, f_ext = os.path.splitext(form_postpicture.filename)
     picture_fn = random_hex + f_ext
     picture_path = os.path.join(app.root_path, 'static/post_pics', picture_fn)
-
-    output_size = (320, 320)
     i = Image.open(form_postpicture)
-    i.thumbnail(output_size)
-    i.save(picture_path)
+    i = ImageOps.exif_transpose(i)
+    i.save(picture_path, optimize=True)
 
     return picture_fn
 

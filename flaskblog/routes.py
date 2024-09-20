@@ -8,13 +8,25 @@ from flaskblog.utils import save_picture, save_picture_post
 
 users = Blueprint('user', __name__, template_folder='templates')
 
-@app.route("/")
-@app.route("/home")
+@app.route("/", methods=['GET', 'POST'])
+@app.route("/home", methods=['GET', 'POST'])
+@login_required
 def home():
+    form = PostForm()
+    comment_form = AddCommentForm()
     user_id = db.session.query(User).count()
     page = request.args.get('page', 1, type=int)
     posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
-    return render_template('home.html', posts=posts, user_id=user_id)
+    if form.validate_on_submit():
+        if form.postpicture.data:
+            post_image = save_picture_post(form.postpicture.data)
+        post = Post(title=form.title.data, content=form.content.data, author=current_user, post_image=post_image)
+        db.session.add(post)
+        db.session.commit()
+        flash('Ваш пост был создан!', 'success')
+        return redirect(url_for('home'))
+    post_file = url_for('static', filename='post_pics/' + Post.post_image)
+    return render_template('home.html', posts=posts, user_id=user_id, form=form, post_file=post_file, comment_form=comment_form, page=page)
 
 
 @app.route("/register", methods=['GET', 'POST'])
@@ -28,8 +40,11 @@ def register():
         user = User(username=form.username.data, email=form.email.data, password=hashed_password)
         db.session.add(user)
         db.session.commit()
-        flash('Ваш аккаунт был создан. Пожалуйста, войдите', 'success')
-        return redirect(url_for('login'))
+        if user:
+            flash('Ваш аккаунт был создан. Пожалуйста, войдите', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash("Ошибка при добавлении в БД", "error")
     return render_template('register.html', title='Регисттрация', form=form, user_id=user_id)
 
 
@@ -90,23 +105,6 @@ def user_posts(username):
     return render_template('user_posts.html', posts=posts, user=user, user_id=user_id)
 
 
-@app.route("/post/new", methods=['GET', 'POST'])
-@login_required
-def new_post():
-    form = PostForm()
-    user_id = db.session.query(User).count()
-    comment_form = AddCommentForm()
-    if form.validate_on_submit():
-        if form.postpicture.data:
-            post_image = save_picture_post(form.postpicture.data)
-        post = Post(title=form.title.data, content=form.content.data, author=current_user, post_image=post_image)
-        db.session.add(post)
-        db.session.commit()
-        flash('Ваш пост был создан!', 'success')
-        return redirect(url_for('home'))
-    post_file = url_for('static', filename='post_pics/' + Post.post_image)
-    return render_template('create_post.html', title='Новый пост',
-                           form=form, legend='Новый пост', post_file=post_file, comment_form=comment_form, user_id=user_id)
 
 
 @app.route("/post/<int:post_id>", methods=['GET', 'POST'])
@@ -133,6 +131,9 @@ def post(post_id):
 def update_post(post_id):
     user_id = db.session.query(User).count()
     post = Post.query.get_or_404(post_id)
+    page = request.args.get('page', 1, type=int)
+    posts = Post.query.order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
+
     if post.author != current_user:
         abort(403)
     form = UpdatePostForm()
@@ -146,10 +147,10 @@ def update_post(post_id):
             post.post_image = save_picture_post(form.postpicture.data)
         db.session.commit()
         flash('Ваш пост был обновлён!', 'success')
-        return redirect(url_for('post', post_id=post.id))
+        return redirect(url_for('home', post_id=post.id))
 
-    return render_template('create_post.html', title='Обновить пост',
-                           form=form, legend='Обновить пост', user_id=user_id)
+    return render_template('home.html', title='Обновить пост',
+                           form=form, legend='Обновить пост', user_id=user_id, posts=posts, page=page)
 
 
 @app.route("/post/<int:post_id>/delete", methods=['POST'])
@@ -187,7 +188,17 @@ def delete_comment(comment_id):
     flash('Комментарий был удалён', 'success')
     return redirect(url_for('post', post_id=single_comment.post_id))
 
-
+@app.route('/like/<int:post_id>/<action>')
+@login_required
+def like_action(post_id, action):
+    post = Post.query.filter_by(id=post_id).first_or_404()
+    if action == 'like':
+        current_user.like_post(post)
+        db.session.commit()
+    if action == 'unlike':
+        current_user.unlike_post(post)
+        db.session.commit()
+    return redirect(request.referrer)
 
 @app.route("/all_users")
 def all_users():

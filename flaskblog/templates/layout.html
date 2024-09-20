@@ -35,11 +35,12 @@
                 
               </div>
               {% if current_user.is_authenticated %}
+              
                 <div class="online_status">
                 <div class="online_user"></div>
                 <div class="current_user nav-item nav-link" ><small>{{ current_user.username }}</small></div>
                 </div>
-                <a class="nav-item nav-link" href="{{ url_for('new_post') }}">Новый пост</a>
+
                 <a class="nav-item nav-link" href="{{ url_for('account') }}">Аккаунт</a>
                 <a class="nav-item nav-link" href="{{ url_for('logout') }}">Выйти</a>
               {% else %}
@@ -56,6 +57,7 @@
         </div>
       </nav>
     </header>
+
     <main role="main" class="container">
       <div class="row">
         <div class="col-md-8">
