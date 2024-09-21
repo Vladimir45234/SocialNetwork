@@ -53,5 +53,44 @@
                 {{ form.submit(class="btn btn-outline-info") }}
             </div>
         </form>
+        <div class="list-posts" style="font-size: 18px;">
+            <h5>Список статей: </h5>
+
+
+            <ol>
+        {% for post in user.posts %}
+        <li><a href="{{ url_for('post', post_id=post.id) }}">{{ post.title }}</a></li>
+        {% endfor %}
+    
+    </ol>
+    </div>
+
+    <div class="left_side">
+
+        <h5>Зарегистрированные пользователи:</h5>
+            {% for user in users: %}
+
+            {% if current_user.id == 1:%}
+            
+                    <div class="card_user">
+                    <img src="{{ url_for('static', filename='profile_pics/' + user.username + '/account_image' + '/' + user.image_file) }}" alt="avatar_user"
+                    class="mr-3 mt-3 rounded-circle" style="width: 48px;">
+                    <a href="{{ url_for('user_posts', username=user.username )}}">{{ user.username }}</a>
+                    <h6 style="color: red;"><a href="{{ url_for('delete_user', username=user.username) }}">Удалить</a></h6>
+                </div>
+                    {% else %}
+                    <div class="card_user">
+                    <li><a href="{{ url_for('user_posts', username=user.username )}}">{{ user.username }}</a>
+                    </div>
+                    {% endif %}
+                    
+                
+                
+                {% endfor %}
+                
+            </li>
+            
+        </ul>
+    </div>
     </div>
 {% endblock content %}

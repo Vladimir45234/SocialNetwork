@@ -7,14 +7,14 @@ from flaskblog.models import User
 
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Имя: ',
-                           validators=[DataRequired(), Length(min=4, max=20, message="Имя должно быть от 4 до 20 символов")])
-    email = StringField('Email: ',
-                        validators=[DataRequired(), Email("Некорректный email")])
-    password = PasswordField('Пароль :', validators=[DataRequired(), Length(min=4, max=20, message="Пароль должен быть от 4 до 20 символов")])
-    confirm_password = PasswordField('Повтор пароля: ',
-                                     validators=[DataRequired(), EqualTo('password', message="Пароли не совпадают")])
-    submit = SubmitField('Регистрация')
+    username = StringField('Имя',
+                           validators=[DataRequired(), Length(min=2, max=20)])
+    email = StringField('Email',
+                        validators=[DataRequired(), Email()])
+    password = PasswordField('Пароль', validators=[DataRequired()])
+    confirm_password = PasswordField('Подтверждение пароля',
+                                     validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Зарегистрироваться')
 
     def validate_username(self, username):
         user = User.query.filter_by(username=username.data).first()
@@ -28,10 +28,10 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Email: ',
-                        validators=[DataRequired(), Email("Некорректный email")])
-    password = PasswordField('Пароль: ', validators=[DataRequired(), Length(min=4, max=100, message="Пароль должен быть от 4 до 100 символов")])
-    remember = BooleanField('Запомнить', default=False)
+    email = StringField('Email',
+                        validators=[DataRequired(), Email()])
+    password = PasswordField('Пароль', validators=[DataRequired()])
+    remember = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
 
 class AddCommentForm(FlaskForm):
@@ -43,7 +43,7 @@ class UpdateAccountForm(FlaskForm):
                            validators=[DataRequired(), Length(min=2, max=20)])
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
-    picture = FileField('Обновить фото профиля', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
+    picture = FileField('Обновить фото профиля', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Обновить')
 
     def validate_username(self, username):
@@ -60,15 +60,15 @@ class UpdateAccountForm(FlaskForm):
 
 
 class PostForm(FlaskForm):
-    title = StringField('Заголовок', validators=[DataRequired(), Length(min=2, max=15)])
+    title = StringField('Заголовок', validators=[DataRequired()])
     content = TextAreaField('Содержание', validators=[DataRequired()])
-    postpicture = FileField('Добавить фотографию', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
+    picture = FileField('Добавить фотографию', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Выложить')
 
 class UpdatePostForm(FlaskForm):
-    title = StringField('Заголовок', validators=[DataRequired(), Length(min=2, max=15)])
+    title = StringField('Заголовок', validators=[DataRequired()])
     content = TextAreaField('Содержание', validators=[DataRequired()])
-    postpicture = FileField('Обновить фотографию', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
+    picture = FileField('Обновить фотографию', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Выложить')
 
 

@@ -3,13 +3,10 @@
 {% block content %}
         <article class="media content-section">
             <div class="media-body">
-                {% for eachuser in userlist %}
-                    <div class="row" style="margin-bottom: 1ex">
-                        <div class="online_status">
-                            <div class="online_user"></div>
-                            <div class="current_user nav-item nav-link"><small>{{ eachuser.username }}</small></div>
-                        </div>
-                    </div>
+                {% for user in all_users %}
+                    {% if user.posts|count > 0 %}
+                    <p><a class="mr-2" href="{{ url_for('user_posts', username=user.username) }}">{{ user.username }}</a>{{ user.posts|count }}</p>
+                    {% endif %}
                 {% endfor %}
             </div>
         </article>

@@ -26,38 +26,24 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarToggle">
             <div class="navbar-nav mr-auto">
-              <a class="nav-item nav-link" href="">Новости</a>
-              <a href="{{ url_for('all_users') }}" class="nav-item nav-link">Пользователей: {{ user_id }}</a></div>
-            
+              <a class="nav-item nav-link" href="{{ url_for('home') }}">Главная</a>
+              <a href="{{ url_for('all_users') }}" class="nav-item nav-link">Профили</a></div>
+            </div>
             <!-- Navbar Right Side -->
             <div class="navbar-nav">
-              <div class="navbar-nav mr-auto">
-                
-              </div>
               {% if current_user.is_authenticated %}
-              
-                <div class="online_status">
-                <div class="online_user"></div>
-                <div class="current_user nav-item nav-link" ><small>{{ current_user.username }}</small></div>
-                </div>
-
+                <a class="nav-item nav-link" href="{{ url_for('new_post') }}">Новый пост</a>
                 <a class="nav-item nav-link" href="{{ url_for('account') }}">Аккаунт</a>
                 <a class="nav-item nav-link" href="{{ url_for('logout') }}">Выйти</a>
               {% else %}
                 <a class="nav-item nav-link" href="{{ url_for('login') }}">Авторизация</a>
                 <a class="nav-item nav-link" href="{{ url_for('register') }}">Регистрация</a>
               {% endif %}
-              {% if current_user.is_admin %}
-                <a class="nav-item nav-link" href="{{ url_for('admin.index') }}">Админка</a>
-              {% else %}
-              {% endif %}
-            </div>
             </div>
           </div>
         </div>
       </nav>
     </header>
-
     <main role="main" class="container">
       <div class="row">
         <div class="col-md-8">

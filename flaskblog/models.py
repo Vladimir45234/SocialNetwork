@@ -1,13 +1,11 @@
 from datetime import datetime
 from flaskblog import db, login_manager, app
 from flask_login import UserMixin
+from hashlib import md5
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
-def load_all_users():
-    return User.query.all()
 
 
 class User(db.Model, UserMixin):
@@ -24,6 +22,10 @@ class User(db.Model, UserMixin):
         'PostLike',
         foreign_keys='PostLike.user_id',
         backref='user', lazy='dynamic')
+    
+    def avatar(self, size):
+        digest = md5(self.email.lower().encode('utf-8')).hexdigest()
+        return f'https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}'
 
     def like_post(self, post):
         if not self.has_liked_post(post):
@@ -41,6 +43,7 @@ class User(db.Model, UserMixin):
             PostLike.user_id == self.id,
             PostLike.post_id == post.id).count() > 0
 
+
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image_file}')"
 
@@ -55,7 +58,7 @@ class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    post_image = db.Column(db.String(30), nullable=False, default='default.jpg')
+    image_post = db.Column(db.String(30), nullable=False, default='default.jpg')
     
     views = db.Column(db.Integer, default=0)
     likes = db.relationship('PostLike', backref='post', lazy='dynamic')
@@ -66,7 +69,7 @@ class Post(db.Model):
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.now)
 
     def __repr__(self):
-        return f'Post({self.id} ,{self.title}, {self.date_posted.strftime("%d.%m.%Y-%H.%M")}, {self.post_image}, {self.user_id})'
+        return f'Post({self.id} ,{self.title}, {self.date_posted.strftime("%d.%m.%Y-%H.%M")}, {self.image_post}, {self.user_id})'
     
 class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
