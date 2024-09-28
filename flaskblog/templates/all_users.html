@@ -2,7 +2,7 @@
 
 {% block content %}
         <article class="media content-section">
-            <div class="media-body">
+            <div class="media-body" style="justify-content: center; text-align: center;">
                 {% for user in all_users %}
                     {% if user.posts|count > 0 %}
                     <p><a class="mr-2" href="{{ url_for('user_posts', username=user.username) }}">{{ user.username }}</a>{{ user.posts|count }}</p>

@@ -1,9 +1,9 @@
 from flask import render_template, url_for, flash, redirect, request, abort
 from flaskblog import app, db, bcrypt
-from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, UpdatePostForm, AddCommentForm, UpdateCommentForm
+from flaskblog.forms import RegistrationForm, LoginForm, UpdateAccountForm, PostForm, UpdatePostForm, AddCommentForm, UpdateCommentForm, RequestResetForm, ResetPasswordForm
 from flaskblog.models import User, Post, Comment
 from flask_login import login_user, current_user, logout_user, login_required
-from flaskblog.utils import save_picture, save_picture_post, random_avatar
+from flaskblog.utils import save_picture, save_picture_post, random_avatar, send_reset_email
 import os
 import shutil
 import sqlalchemy
@@ -20,7 +20,7 @@ def home():
             .paginate(page=page, per_page=5)
         image_file = url_for('static',
                               filename=f'profile_pics/{current_user.username}/{post.image_post}')
-                              
+
         return render_template('home.html', title='Главная', posts=posts, image_file=image_file)
     else:
         return render_template('home.html', title='Главная', nothing='Постов пока нет')
@@ -34,7 +34,7 @@ def register():
     form = RegistrationForm()
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        user = User(username=form.username.data, email=form.email.data, password=hashed_password, 
+        user = User(username=form.username.data, email=form.email.data, password=hashed_password,
                     image_file=random_avatar(form.username.data))
         db.session.add(user)
         db.session.commit()
@@ -80,8 +80,8 @@ def delete_user(username):
         return redirect(url_for('account'))
     except FileNotFoundError:
         return redirect(url_for('account'))
-    
-    
+
+
 
 @app.route("/logout")
 def logout():
@@ -186,7 +186,7 @@ def update_post(post_id):
         return redirect(url_for('post', post_id=post.id))
     image_file = url_for('static',
                          filename=f'profile_pics/{current_user.username}/post_images/{post.image_post}')
-    
+
     return render_template('create_post.html', title='Обновить пост',
                            form=form, legend='Обновить пост', image_file=image_file, post=post)
 
@@ -224,7 +224,7 @@ def delete_comment(comment_id):
     db.session.commit()
     flash('Комментарий был удалён', 'success')
     return redirect(url_for('post', post_id=single_comment.post_id))
-    
+
 @app.route('/like/<int:post_id>/<action>')
 @login_required
 def like_action(post_id, action):
@@ -239,7 +239,37 @@ def like_action(post_id, action):
 
 
 @app.route("/all_users")
+@login_required
 def all_users():
     all_users = User.query.all()
     user_id = db.session.query(User).count()
     return render_template('all_users.html', user_id=user_id, all_users=all_users)
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_request():
+    form = RequestResetForm()
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        send_reset_email(user)
+        flash('На указанный емайл была отправлена инструкция по восстановлению пароля', 'info')
+        return redirect(url_for('login'))
+    return render_template('reset_request.html', form=form, title='Сброс пароля')
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    user = User.verify_reset_token(token)
+    if user is None:
+        flash('Неправильный или просроченный токен', 'warning')
+        return redirect(url_for('reset_request'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user.password = hashed_password
+        db.session.commit()
+        flash('Ваш пароль был обновлён! Вы можете войти на сайт!', 'success')
+        return redirect(url_for('login'))
+    return render_template('reset_token.html', form=form, title='Сброс пароля')

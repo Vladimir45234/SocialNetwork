@@ -4,15 +4,15 @@ from flask_login import current_user
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError, InputRequired
 from flaskblog.models import User
-
+from flask import flash
 
 class RegistrationForm(FlaskForm):
-    username = StringField('Имя',
+    username = StringField('Имя: ',
                            validators=[DataRequired(), Length(min=2, max=20)])
-    email = StringField('Email',
+    email = StringField('Email: ',
                         validators=[DataRequired(), Email()])
-    password = PasswordField('Пароль', validators=[DataRequired()])
-    confirm_password = PasswordField('Подтверждение пароля',
+    password = PasswordField('Пароль: ', validators=[DataRequired()])
+    confirm_password = PasswordField('Подтверждение пароля: ',
                                      validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Зарегистрироваться')
 
@@ -28,22 +28,22 @@ class RegistrationForm(FlaskForm):
 
 
 class LoginForm(FlaskForm):
-    email = StringField('Email',
+    email = StringField('Email: ',
                         validators=[DataRequired(), Email()])
-    password = PasswordField('Пароль', validators=[DataRequired()])
+    password = PasswordField('Пароль: ', validators=[DataRequired()])
     remember = BooleanField('Запомнить меня')
     submit = SubmitField('Войти')
 
 class AddCommentForm(FlaskForm):
-    body = StringField('Ваш комментарий', validators=[InputRequired()])
+    body = StringField('Ваш комментарий: ', validators=[InputRequired()])
     submit = SubmitField('Опубликовать')
 
 class UpdateAccountForm(FlaskForm):
-    username = StringField('Username',
+    username = StringField('Имя: ',
                            validators=[DataRequired(), Length(min=2, max=20)])
-    email = StringField('Email',
+    email = StringField('Email: ',
                         validators=[DataRequired(), Email()])
-    picture = FileField('Обновить фото профиля', validators=[FileAllowed(['jpg', 'png'])])
+    picture = FileField('Обновить фото профиля: ', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     submit = SubmitField('Обновить')
 
     def validate_username(self, username):
@@ -60,18 +60,33 @@ class UpdateAccountForm(FlaskForm):
 
 
 class PostForm(FlaskForm):
-    title = StringField('Заголовок', validators=[DataRequired()])
-    content = TextAreaField('Содержание', validators=[DataRequired()])
-    picture = FileField('Добавить фотографию', validators=[FileAllowed(['jpg', 'png'])])
+    title = StringField('Заголовок: ', validators=[DataRequired()])
+    content = TextAreaField('Содержание: ', validators=[DataRequired()])
+    picture = FileField('Добавить фотографию: ', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
     submit = SubmitField('Выложить')
 
 class UpdatePostForm(FlaskForm):
-    title = StringField('Заголовок', validators=[DataRequired()])
-    content = TextAreaField('Содержание', validators=[DataRequired()])
-    picture = FileField('Обновить фотографию', validators=[FileAllowed(['jpg', 'png'])])
+    title = StringField('Заголовок: ', validators=[DataRequired()])
+    content = TextAreaField('Содержание: ', validators=[DataRequired()])
+    picture = FileField('Обновить фотографию: ', validators=[FileAllowed(['jpg', 'png'])])
     submit = SubmitField('Выложить')
 
 
 class UpdateCommentForm(FlaskForm):
-    body = StringField('Заголовок', validators=[InputRequired()])
+    body = StringField('Заголовок: ', validators=[InputRequired()])
     submit = SubmitField('Опубликовать')
+
+class RequestResetForm(FlaskForm):
+    email = StringField('Email: ', validators=[DataRequired(), Email()])
+    submit = SubmitField('Сбросить пароль')
+
+    def validate_email(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is None:
+            flash('Нет аккаунта с такой электронной почтой!!!', 'danger')
+            raise ValidationError('There is no account with that email. You must register first')
+        
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField('Пароль: ', validators=[DataRequired()])
+    confirm_password = PasswordField('Подтвердите пароль: ', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Сбросить пароль')

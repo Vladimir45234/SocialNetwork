@@ -1,14 +1,17 @@
 {% extends "layout.html" %}
 {% block content %}
     <div class="content-section">
+        <div class="media" style="justify-content: center;">
+        <img class="rounded-circle account-img" src="{{ image_file }}"  style="width: 80px; height: 80px;">
+    </div>
       <div class="media">
-        <img class="rounded-circle account-img" src="{{ image_file }}">
-        <div class="media-body">
+
+        <div class="media-body" style="justify-content: center; text-align: center;">
           <h2 class="account-heading">{{ current_user.username }}</h2>
           <p class="text-secondary">{{ current_user.email }}</p>
         </div>
       </div>
-        <form method="POST" action="" enctype="multipart/form-data">
+        <form method="POST" action="" enctype="multipart/form-data" style="text-align: center;">
             {{ form.hidden_tag() }}
             <fieldset class="form-group">
                 <legend class="border-bottom mb-4">Аккаунт</legend>
@@ -53,43 +56,42 @@
                 {{ form.submit(class="btn btn-outline-info") }}
             </div>
         </form>
-        <div class="list-posts" style="font-size: 18px;">
+        <div class="list-posts" style="justify-content: center; text-align: center;">
             <h5>Список статей: </h5>
 
 
-            <ol>
+
         {% for post in user.posts %}
-        <li><a href="{{ url_for('post', post_id=post.id) }}">{{ post.title }}</a></li>
+        <li style="list-style: none;"><a href="{{ url_for('post', post_id=post.id) }}">{{ post.title }}</a></li>
         {% endfor %}
-    
-    </ol>
+
+
     </div>
 
-    <div class="left_side">
+    <div class="left_side" style="justify-content: center; text-align: center;">
 
         <h5>Зарегистрированные пользователи:</h5>
             {% for user in users: %}
 
             {% if current_user.id == 1:%}
-            
-                    <div class="card_user">
-                    <img src="{{ url_for('static', filename='profile_pics/' + user.username + '/account_image' + '/' + user.image_file) }}" alt="avatar_user"
-                    class="mr-3 mt-3 rounded-circle" style="width: 48px;">
-                    <a href="{{ url_for('user_posts', username=user.username )}}">{{ user.username }}</a>
-                    <h6 style="color: red;"><a href="{{ url_for('delete_user', username=user.username) }}">Удалить</a></h6>
+
+                <div class="card_user" style="justify-content: center;">
+                    <img src="{{ url_for('static', filename='profile_pics/' + user.username + '/account_image' + '/' + user.image_file) }}" alt="" class="rounded-circle" style="width: 100px; height: 100px;">
+                    <li style="list-style: none;"><a href="{{ url_for('user_posts', username=user.username )}}">{{ user.username }}</a></li>
+                    <h6><a href="{{ url_for('delete_user', username=user.username) }}" style="color: red;">Удалить</a></h6>
                 </div>
                     {% else %}
-                    <div class="card_user">
+                    <div class="card_user" style="justify-content: center;">
                     <li><a href="{{ url_for('user_posts', username=user.username )}}">{{ user.username }}</a>
                     </div>
                     {% endif %}
-                    
-                
-                
+
+
+
                 {% endfor %}
-                
+
             </li>
-            
+
         </ul>
     </div>
     </div>

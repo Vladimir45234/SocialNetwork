@@ -1,0 +1,50 @@
+{% extends 'layout.html' %}
+
+{% block content %}
+<div class="content-section">
+<div class="login_form reset_token">
+    <form action="" method="POST">
+
+        {{ form.hidden_tag() }}
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Сбросить пароль</legend>
+
+            <div class="form-group">
+                {% if form.password.errors %}
+                {{ form.password(class='form-control form-control-lg is-invalid', placeholder="Пароль") }}
+                <div class="invalid-feedback">
+                    {% for errors in form.password.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    {{ form.password(class='form-control form-control-lg', placeholder="Пароль") }}
+                {% endif %}
+            </div>
+            <br>
+            <div class="form-group">
+                {% if form.confirm_password.errors %}
+                {{ form.confirm_password(class='form-control form-control-lg is-invalid', placeholder="Подтвердите пароль") }}
+                <div class="invalid-feedback">
+                    {% for errors in form.confirm_password.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    {{ form.confirm_password(class='form-control form-control-lg', placeholder="Подтвердите пароль") }}
+                {% endif %}
+            </div>
+
+            
+        </fieldset>
+
+
+        <div class="form-group">
+            {{ form.submit(class='btn btn-outline-info') }}
+        </div>
+
+    </div>
+    </form>
+</div>
+
+{% endblock %}

@@ -1,2 +1,0 @@
-# SocialNetwork
-SocialNetwork-one
